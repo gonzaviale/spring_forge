@@ -1,8 +1,15 @@
 use std::fs;
 use std::io::Write;
 use std::path::Path;
+use crate::structs::Entity;
 
-pub fn generate_crud(name: &str) {
+pub fn generate_crud(entity: &Entity) {
+    let name = entity.get_name();
+    let attributes_str = entity._get_attributes()
+    .iter()
+    .map(|(field_name, field_type)| format!("private {} {};", field_type, field_name))
+    .collect::<Vec<String>>() 
+    .join("\n");
     let dir = "output";
     fs::create_dir_all(dir).expect("Error al crear el directorio");
 
@@ -21,7 +28,8 @@ public class {0} {{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-}}"#, name
+    {1}
+}}"#, name, attributes_str
     );
     write_file(dir, &format!("{name}.java"), &entity);
 
@@ -124,7 +132,7 @@ public class {0}Controller {{
     );
     write_file(dir, &format!("{name}Controller.java"), &controller);
 
-    println!("✅ CRUD de `{}` generado en la carpeta `{}`.", name, dir);
+    println!("✅ CRUD for `{}` generated successfully in `{}`.", name, dir);
 }
 
 fn write_file(dir: &str, filename: &str, content: &str) {
